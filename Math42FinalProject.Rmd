@@ -1,0 +1,53 @@
+---
+title: "Math 42 Final Project"
+author: 'Jason Clark, UID: 705674471'
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r}
+data <- read.csv("rideshare_kaggle.csv")
+data <- data[, c("price", "surge_multiplier", "distance", "windSpeed", "humidity", "name", "temperature", "precipIntensity", "visibility")]
+```
+
+```{r}
+categorical <- aov(price ~ name, data = data)
+summary(categorical)
+```
+
+```{r}
+full_model <- lm(price ~ surge_multiplier*name + distance*name + windSpeed*name + humidity*name + temperature*name + precipIntensity*name + visibility*name, data = data)
+summary(full_model)
+```
+
+```{r}
+step(full_model, direction="backward", data = data)
+```
+
+```{r}
+reduced_model <- lm(formula = price ~ surge_multiplier + name + distance + surge_multiplier:name + name:distance, data = data)
+
+anova(reduced_model, full_model)
+```
+
+```{r}
+plot(reduced_model)
+```
+
+```{r}
+library(car)
+summary(powerTransform(cbind(data$price, data$surge_multiplier, data$distance)~1))
+```
+
+```{r}
+price <- log(data$price)
+surge_multiplier <- data$surge_multiplier^-84
+distance <- sqrt(data$distance)
+name <- data$name
+transformed_model <- lm(price ~ surge_multiplier + distance + name + surge_multiplier:name + distance:name)
+summary(transformed_model)
+```
+
+```{r}
+plot(transformed_model)
+```
